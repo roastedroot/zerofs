@@ -27,7 +27,7 @@ Add the ZeroFs dependency to your project, for example with Maven:
 </dependency>
 ```
 
-## Basic use
+### Basic use
 
 The simplest way to use ZeroFs is to just get a new `FileSystem` instance from the `ZeroFs` class and
 start using it:
