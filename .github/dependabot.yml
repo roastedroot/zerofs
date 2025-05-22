@@ -1,20 +1,14 @@
 version: 2
 updates:
+
+  # Maintain dependencies for maven (pom.xml in root directory)
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
       interval: "weekly"
-    groups:
-      dependencies:
-        applies-to: version-updates
-        patterns:
-          - "*"
+
+  # Maintain dependencies for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
-    groups:
-      github-actions:
-        applies-to: version-updates
-        patterns:
-          - "*"
+      interval: "weekly"

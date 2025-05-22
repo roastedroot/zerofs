@@ -2,105 +2,43 @@ name: CI
 
 on:
   push:
-    branches:
-      - master
+    branches: [ main ]
   pull_request:
-    branches:
-      - master
+    branches: [ main ]
+
+# When a new revision is pushed to a PR, cancel all in-progress CI runs for that
+# PR. See https://docs.github.com/en/actions/using-jobs/using-concurrency
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  checks: write
 
 jobs:
-  test:
-    name: "JDK ${{ matrix.java }} on ${{ matrix.os }}"
+  build:
+    runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        os: [ ubuntu-latest ]
-        java: [ 21, 11, 8 ]
-        # Only test on macos and windows with a single recent JDK to avoid a
-        # combinatorial explosion of test configurations.
-        # Most OS-specific issues are not specific to a particular JDK version.
-        include:
-          - os: macos-latest
-            java: 21
-          - os: windows-latest
-            java: 21
-    runs-on: ${{ matrix.os }}
-    steps:
-      # Cancel any previous runs for the same branch that are still running.
-      - name: 'Cancel previous runs'
-        uses: styfle/cancel-workflow-action@85880fa0301c86cca9da44039ee3bb12d3bedbfa
-        with:
-          access_token: ${{ github.token }}
-      - name: 'Check out repository'
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: 'Cache local Maven repository'
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - name: 'Set up JDK ${{ matrix.java }}'
-        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
-        with:
-          java-version: ${{ matrix.java }}
-          distribution: 'zulu'
-      - name: 'Install'
-        shell: bash
-        run: mvn -B install -U -DskipTests=true
-      - name: 'Test'
-        shell: bash
-        run: mvn -B verify -U -Dmaven.javadoc.skip=true
+        java-version: [11, 17, 21]
 
-  publish_snapshot:
-    name: 'Publish snapshot'
-    needs: test
-    if: github.event_name == 'push' && github.repository == 'google/jimfs'
-    runs-on: ubuntu-latest
     steps:
-      - name: 'Check out repository'
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: 'Cache local Maven repository'
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - name: 'Set up JDK 8'
-        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
-        with:
-          java-version: 8
-          distribution: 'zulu'
-          server-id: sonatype-nexus-snapshots
-          server-username: CI_DEPLOY_USERNAME
-          server-password: CI_DEPLOY_PASSWORD
-      - name: 'Publish'
-        env:
-          CI_DEPLOY_USERNAME: ${{ secrets.CI_DEPLOY_USERNAME }}
-          CI_DEPLOY_PASSWORD: ${{ secrets.CI_DEPLOY_PASSWORD }}
-        run: mvn -B clean source:jar javadoc:jar deploy -DskipTests=true
+    - uses: actions/checkout@v4
 
-  generate_docs:
-    name: 'Generate latest docs'
-    needs: test
-    if: github.event_name == 'push' && github.repository == 'google/jimfs'
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Check out repository'
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      - name: 'Cache local Maven repository'
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-      - name: 'Set up JDK 11'
-        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
-        with:
-          java-version: 11
-          distribution: 'zulu'
-      - name: 'Generate latest docs'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./util/update_snapshot_docs.sh
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '${{ matrix.java-version }}'
+        cache: maven
+
+    - name: Test zerofs
+      run: mvn -B clean install
+
+    - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v5
+      if: success() || failure() # always run even if the previous step fails
+      with:
+        report_paths: '**/target/surefire-reports/TEST-*.xml'

@@ -1,12 +1,2 @@
-.idea/
-*.ims
-*.iml
-
-.classpath
-.project
-.settings/
-
-target/
-
-bin/
-out/
+.idea
+target

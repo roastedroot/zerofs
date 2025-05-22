@@ -1,158 +1,114 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright 2013 Google Inc.
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
-
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.google.jimfs</groupId>
-  <artifactId>jimfs-parent</artifactId>
+  <groupId>io.roastedroot.zerofs</groupId>
+  <artifactId>zerofs-parent</artifactId>
+  <version>999-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <version>HEAD-SNAPSHOT</version>
 
-  <modules>
-    <module>jimfs</module>
-  </modules>
+  <name>ZeroFs Parent</name>
 
-  <name>Jimfs Parent</name>
+  <description>ZeroFs is a rewrite of Jimfs without additional dependencies</description>
 
-  <description>
-    Jimfs is an in-memory implementation of Java 7's java.nio.file abstract file system API.
-  </description>
+  <url>https://github.com/roastedroot/zerofs</url>
 
-  <url>https://github.com/google/jimfs</url>
-
-  <inceptionYear>2013</inceptionYear>
-
-  <organization>
-    <name>Google Inc.</name>
-    <url>http://www.google.com/</url>
-  </organization>
+  <inceptionYear>2025</inceptionYear>
 
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
 
   <developers>
     <developer>
-      <id>cgdecker</id>
-      <name>Colin Decker</name>
-      <email>cgdecker@google.com</email>
-      <organization>Google Inc.</organization>
-      <organizationUrl>http://www.google.com/</organizationUrl>
-      <roles>
-        <role>owner</role>
-        <role>developer</role>
-      </roles>
-      <timezone>-5</timezone>
+      <id>andreaTP</id>
+      <name>Andrea Peruffo</name>
+      <email>andrea.peruffo1982@gmail.com</email>
+      <organization>Red Hat</organization>
     </developer>
   </developers>
 
+  <modules>
+    <module>core</module>
+  </modules>
+
   <scm>
-    <url>http://github.com/google/jimfs/</url>
-    <connection>scm:git:git://github.com/google/jimfs.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/google/jimfs.git</developerConnection>
+    <connection>scm:git:git://github.com/roastedroot/zerofs.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/roastedroot/zerofs.git</developerConnection>
     <tag>HEAD</tag>
+    <url>http://github.com/roastedroot/zerofs/</url>
   </scm>
 
   <issueManagement>
     <system>GitHub Issues</system>
-    <url>http://github.com/google/jimfs/issues</url>
+    <url>http://github.com/roastedroot/zerofs/issues</url>
   </issueManagement>
 
   <distributionManagement>
-    <snapshotRepository>
-      <id>sonatype-nexus-snapshots</id>
-      <name>Sonatype Nexus Snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </snapshotRepository>
     <repository>
       <id>sonatype-nexus-staging</id>
       <name>Nexus Release Repository</name>
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
     </repository>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </snapshotRepository>
   </distributionManagement>
 
   <properties>
+    <!-- build settings -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <auto-service.version>1.1.1</auto-service.version>
-    <auto-common.version>1.2.2</auto-common.version>
-    <java.version>1.8</java.version>
-    <guava.version>33.4.8-jre</guava.version>
-    <errorprone.version>2.38.0</errorprone.version>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.failOnWarning>true</maven.compiler.failOnWarning>
+    <maven.dependency.failOnWarning>true</maven.dependency.failOnWarning>
+    <project.build.outputTimestamp>2023-01-01T00:00:00Z</project.build.outputTimestamp>
+
+    <java.version>11</java.version>
+
+    <!-- build tool versions -->
+    <checkstyle.version>10.21.4</checkstyle.version>
+    <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
+    <spotless-maven-plugin.version>2.44.3</spotless-maven-plugin.version>
+    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+    <surefire-plugin.version>3.5.2</surefire-plugin.version>
+    <maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
+    <spotless-maven-plugin.version>2.44.4</spotless-maven-plugin.version>
+    <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+
+    <!-- test time versions -->
+    <junit.version>5.12.0</junit.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
-      <!-- Required runtime dependencies -->
-      <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>${guava.version}</version>
-      </dependency>
-
-      <!-- Optional runtime dependencies -->
-      <dependency>
-        <groupId>com.ibm.icu</groupId>
-        <artifactId>icu4j</artifactId>
-        <version>77.1</version>
-      </dependency>
-
-      <!-- Compile-time dependencies -->
-      <dependency>
-        <groupId>com.google.auto.service</groupId>
-        <artifactId>auto-service-annotations</artifactId>
-        <version>${auto-service.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.google.code.findbugs</groupId>
-        <artifactId>jsr305</artifactId>
-        <version>3.0.2</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jspecify</groupId>
-        <artifactId>jspecify</artifactId>
-        <version>1.0.0</version>
-      </dependency>
 
       <!-- Test dependencies -->
       <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>4.13.2</version>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
+        <version>${junit.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava-testlib</artifactId>
-        <version>${guava.version}</version>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${junit.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>com.google.truth</groupId>
-        <artifactId>truth</artifactId>
-        <version>1.4.4</version>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>${junit.version}</version>
         <scope>test</scope>
       </dependency>
+
     </dependencies>
   </dependencyManagement>
 
@@ -160,12 +116,27 @@
     <pluginManagement>
       <plugins>
         <plugin>
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <version>${spotless-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>6.0.0</version>
+        </plugin>
+        <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.14.0</version>
         </plugin>
         <plugin>
-          <artifactId>maven-source-plugin</artifactId>
-          <version>3.3.1</version>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>3.2.7</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${maven-jar-plugin.version}</version>
         </plugin>
         <plugin>
           <artifactId>maven-javadoc-plugin</artifactId>
@@ -186,49 +157,163 @@
           </configuration>
         </plugin>
         <plugin>
-          <artifactId>maven-gpg-plugin</artifactId>
-          <version>3.2.7</version>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.3.1</version>
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.5.3</version>
         </plugin>
-        <plugin>
-          <groupId>org.apache.felix</groupId>
-          <artifactId>maven-bundle-plugin</artifactId>
-          <version>6.0.0</version>
-        </plugin>
       </plugins>
     </pluginManagement>
 
     <plugins>
+
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <configuration>
+          <formats>
+            <format>
+              <includes>
+                <include>*.md</include>
+                <include>.gitignore</include>
+              </includes>
+              <trimTrailingWhitespace/>
+              <endWithNewline/>
+              <indent>
+                <spaces>true</spaces>
+                <spacesPerTab>2</spacesPerTab>
+              </indent>
+            </format>
+          </formats>
+          <java>
+            <includes>
+              <include>**/src/main/java/**/*.java</include>
+              <include>**/src/test/java/**/*.java</include>
+            </includes>
+            <googleJavaFormat>
+              <version>1.18.1</version>
+              <style>AOSP</style>
+              <reflowLongStrings>true</reflowLongStrings>
+              <formatJavadoc>false</formatJavadoc>
+            </googleJavaFormat>
+            <importOrder/>
+            <replaceRegex>
+              <name>Remove wildcard imports</name>
+              <searchRegex>import\s+(?:static\s+)?[^\*\s]+\*;(\r\n|\r|\n)</searchRegex>
+              <replacement>$1</replacement>
+            </replaceRegex>
+            <removeUnusedImports/>
+          </java>
+          <pom>
+            <includes>
+              <include>**/pom.xml</include>
+            </includes>
+            <excludes>
+              <exclude>**/target/**/*.xml</exclude>
+            </excludes>
+            <sortPom>
+              <expandEmptyElements>false</expandEmptyElements>
+              <sortModules>true</sortModules>
+              <sortDependencies>scope,groupId,artifactId</sortDependencies>
+              <sortDependencyExclusions>groupId,artifactId</sortDependencyExclusions>
+              <sortPlugins>groupId,artifactId</sortPlugins>
+            </sortPom>
+          </pom>
+        </configuration>
+        <executions>
+          <execution>
+            <id>format</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>process-sources</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${maven-checkstyle-plugin.version}</version>
+        <configuration>
+          <failOnViolation>true</failOnViolation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <excludeGeneratedSources>true</excludeGeneratedSources>
+          <checkstyleRules>
+            <module name="Checker">
+              <module name="FileTabCharacter">
+                <property name="fileExtensions" value="java,xml"/>
+              </module>
+              <module name="SuppressWarningsFilter"/>
+              <module name="TreeWalker">
+                <module name="AnnotationUseStyle"/>
+                <module name="ArrayTypeStyle"/>
+                <module name="AtclauseOrder"/>
+                <module name="AvoidDoubleBraceInitialization"/>
+                <module name="AvoidNoArgumentSuperConstructorCall"/>
+                <module name="ConstructorsDeclarationGrouping"/>
+                <module name="DefaultComesLast"/>
+                <module name="EmptyBlock">
+                  <property name="option" value="text"/>
+                </module>
+                <module name="EmptyCatchBlock"/>
+                <module name="ExplicitInitialization"/>
+                <module name="FallThrough"/>
+                <module name="FinalClass"/>
+                <module name="HideUtilityClassConstructor"/>
+                <module name="IllegalCatch">
+                  <property name="illegalClassNames" value="Exception"/>
+                </module>
+                <module name="InnerAssignment"/>
+                <module name="InvalidJavadocPosition"/>
+                <module name="JavadocBlockTagLocation"/>
+                <module name="JavadocContentLocation"/>
+                <module name="JavadocMissingLeadingAsterisk"/>
+                <module name="JavadocMissingWhitespaceAfterAsterisk"/>
+                <module name="JavadocTagContinuationIndentation"/>
+                <module name="ModifiedControlVariable"/>
+                <module name="ModifierOrder"/>
+                <module name="MultipleVariableDeclarations"/>
+                <module name="MutableException"/>
+                <module name="NeedBraces"/>
+                <module name="NoClone"/>
+                <module name="NoFinalizer"/>
+                <module name="NonEmptyAtclauseDescription"/>
+                <module name="OneStatementPerLine"/>
+                <module name="OneTopLevelClass"/>
+                <module name="OverloadMethodsDeclarationOrder"/>
+                <module name="PackageDeclaration"/>
+                <module name="RequireEmptyLineBeforeBlockTagGroup"/>
+                <module name="SimplifyBooleanExpression"/>
+                <module name="SimplifyBooleanReturn"/>
+                <module name="SingleLineJavadoc"/>
+                <module name="StringLiteralEquality"/>
+                <module name="SuppressWarningsHolder"/>
+                <module name="TypeName"/>
+                <module name="UnnecessarySemicolonAfterOuterTypeDeclaration"/>
+                <module name="UnnecessarySemicolonAfterTypeMemberDeclaration"/>
+                <module name="UnnecessarySemicolonInEnumeration"/>
+                <module name="UnnecessarySemicolonInTryWithResources"/>
+                <module name="UnusedLocalVariable"/>
+                <module name="UpperEll"/>
+              </module>
+            </module>
+          </checkstyleRules>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>${java.version}</source>
-          <target>${java.version}</target>
-          <annotationProcessorPaths>
-            <path>
-              <groupId>com.google.errorprone</groupId>
-              <artifactId>error_prone_core</artifactId>
-              <version>${errorprone.version}</version>
-            </path>
-            <path>
-              <groupId>com.google.guava</groupId>
-              <artifactId>guava-beta-checker</artifactId>
-              <version>1.0</version>
-            </path>
-            <path>
-              <groupId>com.google.auto.service</groupId>
-              <artifactId>auto-service</artifactId>
-              <version>${auto-service.version}</version>
-            </path>
-            <path>
-              <groupId>com.google.auto</groupId>
-              <artifactId>auto-common</artifactId>
-              <version>${auto-common.version}</version>
-            </path>
-          </annotationProcessorPaths>
+          <release>${java.version}</release>
         </configuration>
       </plugin>
 
@@ -238,7 +323,7 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Automatic-Module-Name>com.google.common.jimfs</Automatic-Module-Name>
+              <Automatic-Module-Name>io.roastedroot.zerofs.ZeroFs</Automatic-Module-Name>
             </manifestEntries>
           </archive>
         </configuration>
@@ -247,97 +332,6 @@
   </build>
 
   <profiles>
-    <profile>
-      <id>jdk8-plus</id>
-      <activation>
-        <jdk>[1.8,)</jdk>
-      </activation>
-      <!-- Disable HTML checking in doclint under JDK 8 and higher -->
-      <reporting>
-        <plugins>
-          <plugin>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <configuration>
-              <additionalOptions>
-                <additionalOption>-Xdoclint:none</additionalOption>
-              </additionalOptions>
-            </configuration>
-          </plugin>
-        </plugins>
-      </reporting>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <configuration>
-              <additionalOptions>
-                <additionalOption>-Xdoclint:none</additionalOption>
-              </additionalOptions>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>before-jdk17</id>
-      <activation>
-        <jdk>(,17)</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <!-- maven-bundle-plugin 6.0.0+ requires JDK 17+ -->
-              <groupId>org.apache.felix</groupId>
-              <artifactId>maven-bundle-plugin</artifactId>
-              <version>5.1.9</version>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-
-    <profile>
-      <id>jdk17-plus</id>
-      <activation>
-        <jdk>[17,)</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <!-- Error Prone requires 17+: https://errorprone.info/docs/installation. -->
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-              <compilerArgument>-Xplugin:ErrorProne -Xep:Java8ApiChecker:ERROR</compilerArgument>
-              <!-- Disable Beta Checker for tests -->
-              <testCompilerArgument>-Xplugin:ErrorProne -Xep:BetaApi:OFF</testCompilerArgument>
-              <compilerArgs>
-                <!-- https://errorprone.info/docs/installation#maven -->
-                <arg>-XDcompilePolicy=simple</arg>
-                <arg>--should-stop=ifError=FLOW</arg>
-                <!-- TODO(cpovirk): Use .mvn/jvm.config instead (per
-                     https://errorprone.info/docs/installation#maven) if it can
-                     be made not to interfere with JDK8 or if we stop building
-                     with JDK8. -->
-                <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</arg>
-                <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
-                <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
-                <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
-                <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
-                <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
-                <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
-                <arg>-J--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
-                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
-                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
-              </compilerArgs>
-              <fork>true</fork> <!-- -J options are only passed through if fork is set to true. -->
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
 
     <profile>
       <id>sonatype-oss-release</id>
@@ -345,13 +339,14 @@
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
+            <artifactId>maven-gpg-plugin</artifactId>
             <executions>
               <execution>
-                <id>attach-sources</id>
+                <id>sign-artifacts</id>
                 <goals>
-                  <goal>jar-no-fork</goal>
+                  <goal>sign</goal>
                 </goals>
+                <phase>verify</phase>
               </execution>
             </executions>
           </plugin>
@@ -369,13 +364,12 @@
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
+            <artifactId>maven-source-plugin</artifactId>
             <executions>
               <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
+                <id>attach-sources</id>
                 <goals>
-                  <goal>sign</goal>
+                  <goal>jar-no-fork</goal>
                 </goals>
               </execution>
             </executions>
