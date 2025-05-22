@@ -1,6 +1,6 @@
 # ZeroFs
 
-[![Build Status](https://github.com/roastedroot/zerofs/workflows/CI/badge.svg?branch=main)](https://github.com/roastedroot/zerofs/actions)
+[![Build Status](https://github.com/roastedroot/zerofs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/roastedroot/zerofs/actions)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.roastedroot/zerofs/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.roastedroot/zerofs)
 
 ZeroFs is a port of the original [Jimfs](https://github.com/google/jimfs) project, with the following key differences:
