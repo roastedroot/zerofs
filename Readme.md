@@ -38,7 +38,7 @@ import io.roastedroot.zerofs.ZeroFs;
 ...
 
 // For a simple file system with Unix-style paths and behavior:
-FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+FileSystem fs = ZeroFs.newFileSystem(Configuration.unix());
 Path foo = fs.getPath("/foo");
 Files.createDirectory(foo);
 
