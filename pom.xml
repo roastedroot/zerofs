@@ -135,12 +135,10 @@
             <charset>UTF-8</charset>
             <source>${java.version}</source>
             <detectJavaApiLink>false</detectJavaApiLink>
-            <links>
-              <link>https://guava.dev/releases/${guava.version}/api/docs/</link>
-              <link>https://unicode-org.github.io/icu-docs/apidoc/released/icu4j</link>
-              <!-- When building against Java 8, the Java 11 link below is overridden to point to an older version (Java 9, the newest one that works). -->
-              <link>https://docs.oracle.com/en/java/javase/11/docs/api/</link>
-            </links>
+            <sourcepath>src/main/java</sourcepath>
+            <additionalOptions>-Xdoclint:none</additionalOptions>
+            <additionalOptions>--ignore-source-errors</additionalOptions>
+            <additionalJOption>-Xdoclint:none</additionalJOption>
           </configuration>
         </plugin>
         <plugin>
