@@ -67,7 +67,7 @@
     <surefire-plugin.version>3.5.2</surefire-plugin.version>
     <maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
     <spotless-maven-plugin.version>2.46.1</spotless-maven-plugin.version>
-    <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+    <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
 
     <!-- test time versions -->
     <junit.version>5.14.1</junit.version>
