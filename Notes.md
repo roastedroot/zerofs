@@ -1,3 +1,0 @@
-- review usages of `GuardedBy`
-- review javadocs warnings
-- contact jimfs repo
