@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -14,7 +15,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -373,5 +376,22 @@ public class AttributeServiceTest {
         } catch (IllegalArgumentException expected) {
             assertTrue(expected.getMessage().contains("single attribute"));
         }
+
+        assertThrows(IllegalArgumentException.class, () -> service.getAttribute(file, "size,"));
+        assertThrows(
+                IllegalArgumentException.class, () -> service.readAttributes(file, "basic:size,"));
+        assertThrows(
+                IllegalArgumentException.class, () -> service.readAttributes(file, "basic:*,"));
+    }
+
+    @Test
+    public void testDuplicateProviders() {
+        Set<AttributeProvider> providers =
+                Set.of(StandardAttributeProviders.get("basic"), new TestAttributeProvider());
+        List<AttributeProvider> duplicated = new ArrayList<>(providers);
+        duplicated.add(new TestAttributeProvider());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new AttributeService(duplicated, Map.<String, Object>of()));
     }
 }
