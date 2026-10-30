@@ -1077,7 +1077,7 @@ public class ZeroFsUnixLikeFileSystemTest extends AbstractZeroFsIntegrationTest 
         byte[] allBytes = new byte[105];
         int off = 0;
         int read;
-        while ((read = in.read(allBytes, off, allBytes.length - off)) != -1) {
+        while ((read = in.read(allBytes, off, allBytes.length - off)) > 0) {
             off += read;
         }
         assertArrayEquals(concat(bytes, moreBytes), allBytes);
