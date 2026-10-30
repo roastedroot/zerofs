@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -39,6 +40,31 @@ public class FileTest {
 
         assertTrue(file.getAttributeKeys().isEmpty());
         assertNull(file.getAttribute("foo", "foo"));
+    }
+
+    @Test
+    public void testAttributes_missingView() {
+        File file = regularFile(0);
+        file.setAttribute("foo", "foo", "foo");
+
+        assertTrue(file.getAttributeNames("bar").isEmpty());
+        file.deleteAttribute("bar", "bar"); // doesn't throw
+        assertEquals(Set.of("foo"), file.getAttributeNames("foo"));
+    }
+
+    @Test
+    public void testCopyAttributes_mergesWithoutSharingState() {
+        File source = regularFile(0);
+        source.setAttribute("foo", "a", "1");
+        File target = regularFile(1);
+        target.setAttribute("foo", "b", "2");
+
+        source.copyAttributes(target);
+        target.setAttribute("foo", "a", "changed");
+
+        assertEquals("1", source.getAttribute("foo", "a"));
+        assertNull(source.getAttribute("foo", "b"));
+        assertEquals("2", target.getAttribute("foo", "b"));
     }
 
     @Test
