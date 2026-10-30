@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Supplier;
@@ -119,10 +118,10 @@ final class FileSystemView {
     }
 
     /** Snapshots the entries of the working directory of this view. */
-    public SortedSet<Name> snapshotWorkingDirectoryEntries() {
+    public List<Name> snapshotWorkingDirectoryEntries() {
         store.readLock().lock();
         try {
-            SortedSet<Name> names = workingDirectory.snapshot();
+            List<Name> names = workingDirectory.snapshot();
             workingDirectory.setLastAccessTime(now());
             return names;
         } finally {
