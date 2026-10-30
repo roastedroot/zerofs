@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -625,6 +626,17 @@ public class ZeroFsFileChannelTest {
             fail();
         } catch (IllegalArgumentException expected) {
         }
+    }
+
+    @Test
+    public void testScatterGather_nullBufferFailsBeforeIo() throws IOException {
+        FileChannel channel = channel(regularFile(10), READ, WRITE);
+        ByteBuffer[] buffers = {ByteBuffer.allocate(5), null};
+
+        assertThrows(NullPointerException.class, () -> channel.read(buffers));
+        assertThrows(NullPointerException.class, () -> channel.write(buffers));
+        assertEquals(0, buffers[0].position());
+        assertEquals(0, channel.position());
     }
 
     //  TODO: skip only null checks
