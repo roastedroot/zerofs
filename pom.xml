@@ -64,7 +64,6 @@
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     <surefire-plugin.version>3.5.2</surefire-plugin.version>
-    <maven-failsafe-plugin.version>3.5.3</maven-failsafe-plugin.version>
     <spotless-maven-plugin.version>3.10.1</spotless-maven-plugin.version>
     <maven-jar-plugin.version>3.5.1</maven-jar-plugin.version>
 
@@ -101,11 +100,6 @@
   <build>
     <pluginManagement>
       <plugins>
-        <plugin>
-          <groupId>org.apache.felix</groupId>
-          <artifactId>maven-bundle-plugin</artifactId>
-          <version>6.1.2</version>
-        </plugin>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.16.0</version>
