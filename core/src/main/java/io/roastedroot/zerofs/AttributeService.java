@@ -51,10 +51,10 @@ final class AttributeService {
         List<FileAttribute<?>> defaultAttributesBuilder = new ArrayList();
 
         for (AttributeProvider provider : providers) {
-            byViewNameBuilder.put(provider.name(), provider);
-            byViewTypeBuilder.put(provider.viewType(), provider);
+            putUnique(byViewNameBuilder, provider.name(), provider);
+            putUnique(byViewTypeBuilder, provider.viewType(), provider);
             if (provider.attributesType() != null) {
-                byAttributesTypeBuilder.put(provider.attributesType(), provider);
+                putUnique(byAttributesTypeBuilder, provider.attributesType(), provider);
             }
 
             for (Map.Entry<String, ?> entry :
@@ -68,6 +68,13 @@ final class AttributeService {
         this.providersByViewType = Map.copyOf(byViewTypeBuilder);
         this.providersByAttributesType = Map.copyOf(byAttributesTypeBuilder);
         this.defaultValues = List.copyOf(defaultAttributesBuilder);
+    }
+
+    private static <K> void putUnique(
+            Map<K, AttributeProvider> map, K key, AttributeProvider provider) {
+        if (map.putIfAbsent(key, provider) != null) {
+            throw new IllegalArgumentException("multiple attribute providers for: " + key);
+        }
     }
 
     private static Iterable<AttributeProvider> getProviders(Configuration configuration) {
@@ -367,7 +374,7 @@ final class AttributeService {
         String attributesPart = attributes.substring(separatorIndex + 1);
 
         List<String> result = new ArrayList<>();
-        for (String part : attributesPart.split(ATTRIBUTE_SPLITTER)) {
+        for (String part : attributesPart.split(ATTRIBUTE_SPLITTER, -1)) {
             result.add(part);
         }
         return List.copyOf(result);

@@ -192,7 +192,7 @@ abstract class AbstractWatchService implements WatchService {
             this.watcher = Objects.requireNonNull(watcher);
             this.watchable = watchable; // nullable for Watcher poison
             this.subscribedTypes = new HashSet<>();
-            subscribedTypes.forEach(this.subscribedTypes::add);
+            subscribedTypes.forEach(type -> this.subscribedTypes.add(Objects.requireNonNull(type)));
         }
 
         /** Gets the current state of this key, State.READY or SIGNALLED. */
