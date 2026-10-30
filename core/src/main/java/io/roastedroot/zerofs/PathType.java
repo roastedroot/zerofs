@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * An object defining a specific type of path. Knows how to parse strings to a path and how to
@@ -101,7 +100,7 @@ public abstract class PathType {
 
     /** Returns the path splitter for this path type. */
     public final String join(String[] strs) {
-        return Arrays.asList(strs).stream().collect(Collectors.joining(separator));
+        return String.join(separator, strs);
     }
 
     /** Returns the path splitter for this path type. */
