@@ -7,9 +7,11 @@ import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
 
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.CopyOption;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -125,11 +127,20 @@ final class Options {
     }
 
     /** Returns an immutable set of the given options for a move. */
-    public static Set<CopyOption> getMoveOptions(CopyOption... options) {
+    public static Set<CopyOption> getMoveOptions(Path source, Path target, CopyOption... options)
+            throws AtomicMoveNotSupportedException {
         List<CopyOption> opts = new ArrayList<>();
         opts.add(LinkOption.NOFOLLOW_LINKS);
         opts.addAll(List.of(options));
-        return Set.copyOf(opts);
+        Set<CopyOption> result = Set.copyOf(opts);
+        if (result.contains(ATOMIC_MOVE)
+                && !source.getFileSystem().equals(target.getFileSystem())) {
+            throw new AtomicMoveNotSupportedException(
+                    source.toString(),
+                    target.toString(),
+                    "Atomic move between different file systems is not supported");
+        }
+        return result;
     }
 
     /** Returns an immutable set of the given options for a copy. */

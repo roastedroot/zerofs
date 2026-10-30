@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -41,6 +42,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.NonReadableChannelException;
 import java.nio.channels.NonWritableChannelException;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.ClosedDirectoryStreamException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.DirectoryStream;
@@ -1890,7 +1892,7 @@ public class ZeroFsUnixLikeFileSystemTest extends AbstractZeroFsIntegrationTest 
         Files.createFile(path("/bar"));
 
         try {
-            Files.move(path("/test"), path("/bar"), ATOMIC_MOVE);
+            Files.move(path("/test"), path("/bar"));
             fail();
         } catch (FileAlreadyExistsException expected) {
             assertEquals("/bar", expected.getMessage());
@@ -1902,13 +1904,56 @@ public class ZeroFsUnixLikeFileSystemTest extends AbstractZeroFsIntegrationTest 
         Files.createDirectory(path("/bar"));
 
         try {
-            Files.move(path("/test"), path("/bar"), ATOMIC_MOVE);
+            Files.move(path("/test"), path("/bar"));
             fail();
         } catch (FileAlreadyExistsException expected) {
             assertEquals("/bar", expected.getMessage());
         }
 
         assertThatPath("/test").containsBytes(bytes).and().attribute("fileKey").is(testKey);
+    }
+
+    @Test
+    public void testMove_withAtomicMove_success() throws IOException {
+        byte[] bytes = preFilledBytes(50);
+        Files.write(path("/test"), bytes);
+        Object testKey = getFileKey("/test");
+
+        Files.move(path("/test"), path("/bar"), ATOMIC_MOVE);
+
+        assertThatPath("/test").doesNotExist();
+        assertThatPath("/bar").containsBytes(bytes).and().attribute("fileKey").is(testKey);
+    }
+
+    @Test
+    public void testMove_withAtomicMove_replacesExisting() throws IOException {
+        byte[] bytes = preFilledBytes(50);
+        Files.write(path("/test"), bytes);
+        Object testKey = getFileKey("/test");
+
+        Files.write(path("/bar"), preFilledBytes(100));
+
+        Files.move(path("/test"), path("/bar"), ATOMIC_MOVE);
+
+        assertThatPath("/test").doesNotExist();
+        assertThatPath("/bar").containsBytes(bytes).and().attribute("fileKey").is(testKey);
+    }
+
+    @Test
+    public void testMove_withAtomicMove_differentFileSystem_fails() throws IOException {
+        try (FileSystem fs2 = ZeroFs.newFileSystem(Configuration.unix())) {
+            Path foo = fs.getPath("/foo");
+            Files.write(foo, preFilledBytes(50));
+
+            Path foo2 = fs2.getPath("/foo");
+
+            assertThrows(
+                    AtomicMoveNotSupportedException.class,
+                    () -> Files.move(foo, foo2, ATOMIC_MOVE));
+            assertThrows(
+                    AtomicMoveNotSupportedException.class,
+                    () -> fs.provider().move(foo, foo2, ATOMIC_MOVE));
+        }
     }
 
     @Test
