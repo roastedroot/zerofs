@@ -247,6 +247,12 @@
 
   <profiles>
     <profile>
+      <id>bench</id>
+      <modules>
+        <module>benchmarks</module>
+      </modules>
+    </profile>
+    <profile>
       <id>java17</id>
       <activation>
         <jdk>[17,)</jdk>

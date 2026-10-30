@@ -74,6 +74,13 @@ ZeroFs also supports creating file systems that, for example, use Windows-style 
 extent) behavior. In general, however, file system behavior is modeled after UNIX and may not
 exactly match any particular real file system or platform.
 
+### Benchmarks
+
+```bash
+mvn -Pbench -DskipTests package
+java -jar benchmarks/target/benchmarks.jar
+```
+
 ### Original License
 
 ```
