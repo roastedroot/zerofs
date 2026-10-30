@@ -166,6 +166,7 @@ public final class SystemZeroFsFileSystemProvider extends FileSystemProvider {
         // such appear to be a totally different class.
         try {
             Method toPath = fileSystem.getClass().getDeclaredMethod("toPath", URI.class);
+            toPath.setAccessible(true);
             return (Path) toPath.invoke(fileSystem, uri);
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException("invalid file system: " + fileSystem, e);
