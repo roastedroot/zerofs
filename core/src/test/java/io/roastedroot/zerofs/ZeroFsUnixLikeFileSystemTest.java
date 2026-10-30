@@ -118,6 +118,7 @@ public class ZeroFsUnixLikeFileSystemTest extends AbstractZeroFsIntegrationTest 
 
         long totalSpace = 1024 * 1024 * 1024; // 1 GB
         assertEquals(totalSpace, fileStore.getTotalSpace());
+        assertEquals(8192, fileStore.getBlockSize());
         assertEquals(totalSpace, fileStore.getUnallocatedSpace());
         assertEquals(totalSpace, fileStore.getUsableSpace());
 
