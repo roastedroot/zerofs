@@ -57,6 +57,7 @@ import java.nio.file.NotDirectoryException;
 import java.nio.file.NotLinkException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.ProviderMismatchException;
 import java.nio.file.SecureDirectoryStream;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -2151,6 +2152,114 @@ public class ZeroFsUnixLikeFileSystemTest extends AbstractZeroFsIntegrationTest 
                                 .isRegularFile());
             }
         }
+    }
+
+    @Test
+    public void testSecureDirectoryStream_differentFileSystems() throws IOException {
+        Path fs1DirPath = path("foo");
+        Files.createDirectories(fs1DirPath);
+        Path fs1File = path("a");
+        Files.createFile(fs1DirPath.resolve(fs1File));
+
+        try (FileSystem fs2 = ZeroFs.newFileSystem("fs2", UNIX_CONFIGURATION)) {
+            Path fs2DirPath = fs2.getPath("foo");
+            Files.createDirectories(fs2DirPath);
+            Path fs2File = fs2.getPath("a");
+            Files.createFile(fs2DirPath.resolve(fs2File));
+
+            try (SecureDirectoryStream<Path> fs1Dir = newDirStream(fs1DirPath)) {
+                assertThrows(
+                        ProviderMismatchException.class,
+                        () -> fs1Dir.newDirectoryStream(fs2DirPath));
+                assertThrows(
+                        ProviderMismatchException.class,
+                        () -> fs1Dir.newByteChannel(fs2File, Set.of(READ)));
+                assertThrows(
+                        ProviderMismatchException.class, () -> fs1Dir.deleteDirectory(fs2DirPath));
+                assertThrows(ProviderMismatchException.class, () -> fs1Dir.deleteFile(fs2File));
+                assertThrows(
+                        ProviderMismatchException.class,
+                        () -> fs1Dir.getFileAttributeView(fs2File, BasicFileAttributeView.class));
+                Path otherFs1File = path("b");
+                assertThrows(
+                        ProviderMismatchException.class,
+                        () -> fs1Dir.move(fs2File, fs1Dir, otherFs1File));
+                assertThrows(
+                        ProviderMismatchException.class,
+                        () -> fs1Dir.move(fs1File, fs1Dir, fs2File));
+
+                try (SecureDirectoryStream<Path> fs2Dir = newDirStream(fs2DirPath)) {
+                    assertThrows(
+                            AtomicMoveNotSupportedException.class,
+                            () -> fs1Dir.move(fs1File, fs2Dir, fs2File));
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testSecureDirectoryStream_differentFileSystemProviders() throws IOException {
+        Path fs1DirPath = path("foo");
+        Files.createDirectories(fs1DirPath);
+        Path fs1File = path("a");
+        Files.createFile(fs1DirPath.resolve(fs1File));
+
+        Path fs2Path = Paths.get(System.getProperty("java.io.tmpdir"));
+
+        try (SecureDirectoryStream<Path> fs1Dir = newDirStream(fs1DirPath)) {
+            assertThrows(ProviderMismatchException.class, () -> fs1Dir.newDirectoryStream(fs2Path));
+            assertThrows(
+                    ProviderMismatchException.class,
+                    () -> fs1Dir.newByteChannel(fs2Path, Set.of(READ)));
+            assertThrows(ProviderMismatchException.class, () -> fs1Dir.deleteDirectory(fs2Path));
+            assertThrows(ProviderMismatchException.class, () -> fs1Dir.deleteFile(fs2Path));
+            assertThrows(
+                    ProviderMismatchException.class,
+                    () -> fs1Dir.getFileAttributeView(fs2Path, BasicFileAttributeView.class));
+            Path otherFs1File = path("b");
+            assertThrows(
+                    ProviderMismatchException.class,
+                    () -> fs1Dir.move(fs2Path, fs1Dir, otherFs1File));
+            assertThrows(
+                    ProviderMismatchException.class, () -> fs1Dir.move(fs1File, fs1Dir, fs2Path));
+
+            try (DirectoryStream<Path> fs2DirStream = Files.newDirectoryStream(fs2Path)) {
+                // the default file system only offers SecureDirectoryStream on some platforms
+                if (fs2DirStream instanceof SecureDirectoryStream<?>) {
+                    SecureDirectoryStream<Path> fs2Dir = (SecureDirectoryStream<Path>) fs2DirStream;
+                    assertThrows(
+                            ProviderMismatchException.class,
+                            () -> fs1Dir.move(fs1File, fs2Dir, fs2Path));
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testSecureDirectoryStream_move_doesNotFollowLinks() throws IOException {
+        Path dir = path("dir");
+        Path fileName = path("file");
+        Path file = dir.resolve(fileName);
+        Path linkName = path("link");
+
+        Files.createDirectories(dir);
+        Files.createFile(file);
+        Files.createSymbolicLink(dir.resolve(linkName), fileName);
+
+        try (SecureDirectoryStream<Path> stream = newDirStream(dir)) {
+            Path movedLinkName = path("link2");
+            stream.move(linkName, stream, movedLinkName);
+
+            Path dirRelativeLink = dir.resolve(movedLinkName);
+            assertThatPath(dirRelativeLink).noFollowLinks().isSymbolicLink();
+            assertThatPath(dirRelativeLink).isSameFileAs(file);
+        }
+    }
+
+    private static SecureDirectoryStream<Path> newDirStream(Path path) throws IOException {
+        DirectoryStream<Path> stream = Files.newDirectoryStream(path);
+        assertInstanceOf(SecureDirectoryStream.class, stream);
+        return (SecureDirectoryStream<Path>) stream;
     }
 
     @Test
