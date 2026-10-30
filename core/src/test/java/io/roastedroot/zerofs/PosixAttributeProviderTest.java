@@ -10,6 +10,8 @@ import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -106,5 +108,23 @@ public class PosixAttributeProviderTest
         assertEquals(PosixFilePermissions.fromString("rw-r--r--"), attrs.permissions());
         assertEquals(createGroupPrincipal("group"), attrs.group());
         assertEquals(0, attrs.fileKey());
+    }
+
+    @Test
+    public void testAttributes_permissionsAreModifiable() {
+        Set<PosixFilePermission> permissions = provider.readAttributes(file).permissions();
+        permissions.add(PosixFilePermission.OWNER_EXECUTE);
+        assertEquals(PosixFilePermissions.fromString("rwxr--r--"), permissions);
+    }
+
+    @Test
+    public void testAttributes_permissionsInEnumOrder() {
+        provider.set(file, "posix", "permissions", new HashSet<>(allPermissions()), false);
+        assertEquals(
+                allPermissions(), new ArrayList<>(provider.readAttributes(file).permissions()));
+    }
+
+    private static List<PosixFilePermission> allPermissions() {
+        return List.of(PosixFilePermission.values());
     }
 }
