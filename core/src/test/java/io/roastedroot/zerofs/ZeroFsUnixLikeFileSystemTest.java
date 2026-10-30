@@ -1985,6 +1985,17 @@ public class ZeroFsUnixLikeFileSystemTest extends AbstractZeroFsIntegrationTest 
     }
 
     @Test
+    public void testDirectoryStream_exhaustedIteratorAfterClose() throws IOException {
+        Files.createDirectory(path("/foo"));
+        DirectoryStream<Path> stream = Files.newDirectoryStream(path("/foo"));
+        Iterator<Path> iterator = stream.iterator();
+        assertFalse(iterator.hasNext());
+
+        stream.close();
+        assertFalse(iterator.hasNext());
+    }
+
+    @Test
     public void testSecureDirectoryStream() throws IOException {
         Files.createDirectories(path("/foo/bar"));
         Files.createFile(path("/foo/a"));
