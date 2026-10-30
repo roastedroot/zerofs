@@ -5,6 +5,7 @@ import static io.roastedroot.zerofs.PathSubject.paths;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -30,6 +31,12 @@ public class PathServiceTest {
     public void testBasicProperties() {
         assertEquals("/", service.getSeparator());
         assertEquals("\\", fakeWindowsPathService().getSeparator());
+    }
+
+    @Test
+    public void testSetFileSystem_twice() {
+        PathService service = fakeUnixPathService();
+        assertThrows(IllegalStateException.class, () -> service.setFileSystem(FILE_SYSTEM));
     }
 
     @Test

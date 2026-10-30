@@ -129,6 +129,9 @@ final class FileSystemState implements Closeable {
                 if (thrown instanceof RuntimeException) {
                     throw (RuntimeException) thrown;
                 }
+                if (thrown instanceof Error) {
+                    throw (Error) thrown;
+                }
             }
         }
     }
