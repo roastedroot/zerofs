@@ -59,15 +59,24 @@ final class FileTree {
     public DirectoryEntry lookUp(
             File workingDirectory, ZeroFsPath path, Set<? super LinkOption> options)
             throws IOException {
-        Objects.requireNonNull(path);
-        Objects.requireNonNull(options);
-
-        DirectoryEntry result = lookUp(workingDirectory, path, options, 0);
+        DirectoryEntry result = lookUpOrNull(workingDirectory, path, options);
         if (result == null) {
             // an intermediate file in the path did not exist or was not a directory
             throw new NoSuchFileException(path.toString());
         }
         return result;
+    }
+
+    /**
+     * Like {@link #lookUp(File, ZeroFsPath, Set)}, but returns {@code null} instead of throwing when
+     * an intermediate file in the path does not exist or is not a directory.
+     */
+    DirectoryEntry lookUpOrNull(
+            File workingDirectory, ZeroFsPath path, Set<? super LinkOption> options)
+            throws IOException {
+        Objects.requireNonNull(path);
+        Objects.requireNonNull(options);
+        return lookUp(workingDirectory, path, options, 0);
     }
 
     private DirectoryEntry lookUp(

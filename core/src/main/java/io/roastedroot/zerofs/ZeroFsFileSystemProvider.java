@@ -315,6 +315,20 @@ final class ZeroFsFileSystemProvider extends FileSystemProvider {
                 .getFileAttributeView(checkedPath, type, Options.getLinkOptions(options));
     }
 
+    // overrides FileSystemProvider.exists on JDK 20+, avoiding an exception for missing files
+    public boolean exists(Path path, LinkOption... options) {
+        ZeroFsPath checkedPath = checkPath(path);
+        return getDefaultView(checkedPath).exists(checkedPath, Options.getLinkOptions(options));
+    }
+
+    // overrides FileSystemProvider.readAttributesIfExists on JDK 20+
+    public <A extends BasicFileAttributes> A readAttributesIfExists(
+            Path path, Class<A> type, LinkOption... options) throws IOException {
+        ZeroFsPath checkedPath = checkPath(path);
+        return getDefaultView(checkedPath)
+                .readAttributesIfExists(checkedPath, type, Options.getLinkOptions(options));
+    }
+
     @Override
     public <A extends BasicFileAttributes> A readAttributes(
             Path path, Class<A> type, LinkOption... options) throws IOException {

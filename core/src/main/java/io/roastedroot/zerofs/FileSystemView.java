@@ -378,6 +378,32 @@ final class FileSystemView {
      * Checks access to the file at the given path for the given modes. Since access controls are not
      * implemented for this file system, this just checks that the file exists.
      */
+    /** Returns whether a file exists at the given path, without throwing if it doesn't. */
+    public boolean exists(ZeroFsPath path, Set<? super LinkOption> options) {
+        try {
+            return lookUpIfExists(path, options) != null;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /** Returns the attributes of the file at the given path, or {@code null} if there is none. */
+    public <A extends BasicFileAttributes> A readAttributesIfExists(
+            ZeroFsPath path, Class<A> type, Set<? super LinkOption> options) throws IOException {
+        File file = lookUpIfExists(path, options);
+        return file == null ? null : store.readAttributes(file, type);
+    }
+
+    private File lookUpIfExists(ZeroFsPath path, Set<? super LinkOption> options)
+            throws IOException {
+        store.readLock().lock();
+        try {
+            return store.lookUpIfExists(workingDirectory, path, options);
+        } finally {
+            store.readLock().unlock();
+        }
+    }
+
     public void checkAccess(ZeroFsPath path) throws IOException {
         // just check that the file exists
         lookUpWithLock(path, Options.FOLLOW_LINKS).requireExists(path);
