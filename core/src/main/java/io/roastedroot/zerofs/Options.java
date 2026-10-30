@@ -64,10 +64,8 @@ final class Options {
 
             if (!write) {
                 // ignore all write related options
-                return options.stream()
-                                .anyMatch(o -> o.hashCode() == LinkOption.NOFOLLOW_LINKS.hashCode())
-                        // throws ClassCastException
-                        // return options.contains(LinkOption.NOFOLLOW_LINKS)
+                // not contains(): sorted sets of StandardOpenOption throw ClassCastException
+                return options.stream().anyMatch(o -> o == LinkOption.NOFOLLOW_LINKS)
                         ? DEFAULT_READ_NOFOLLOW_LINKS
                         : DEFAULT_READ;
             }

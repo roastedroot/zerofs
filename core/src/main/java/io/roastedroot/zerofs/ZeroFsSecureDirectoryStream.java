@@ -73,9 +73,10 @@ final class ZeroFsSecureDirectoryStream implements SecureDirectoryStream<Path> {
         private Iterator<Name> fileNames;
         private Path nextPath;
         private boolean nextPathReady = false;
+        private boolean done = false;
 
         private void prepareNext() {
-            if (nextPathReady) return;
+            if (nextPathReady || done) return;
 
             checkOpen();
 
@@ -97,6 +98,7 @@ final class ZeroFsSecureDirectoryStream implements SecureDirectoryStream<Path> {
 
                 nextPath = null;
                 nextPathReady = false;
+                done = true;
             } catch (IOException e) {
                 throw new DirectoryIteratorException(e);
             }
