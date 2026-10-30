@@ -14,6 +14,8 @@ ZeroFs is a port of the original [Jimfs](https://github.com/google/jimfs) projec
 
 - Zero dependencies
 - Java 11+
+- `PathNormalization.CASE_FOLD_UNICODE` uses `String.toLowerCase(Locale.ROOT)` instead of ICU4J case
+  folding, so some names that Jimfs treats as equal (e.g. `ß` and `ss`) are different in ZeroFs
 
 The goal is to make it the "go to" Virtual FileSystem for Java, especially to support the WASI layer of WASM payloads.
 To achieve it we build on the amazing decade old [Jimfs](https://github.com/google/jimfs) foundation.
@@ -50,7 +52,7 @@ Path foo = fs.getPath("/foo");
 Files.createDirectory(foo);
 
 Path hello = foo.resolve("hello.txt"); // /foo/hello.txt
-Files.write(hello, ImmutableList.of("hello world"), StandardCharsets.UTF_8);
+Files.write(hello, List.of("hello world"), StandardCharsets.UTF_8);
 ```
 
 ### What's supported?
