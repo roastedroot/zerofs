@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
@@ -22,10 +23,12 @@ import java.nio.channels.FileLock;
 import java.nio.file.OpenOption;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -164,6 +167,73 @@ public class ZeroFsAsynchronousFileChannelTest {
 
             assertAsynchronousClose(future);
             assertAsynchronousClose(completionHandlerFuture);
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    public void testCancelQueuedWrite() throws Throwable {
+        RegularFile file = regularFile(0);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        CountDownLatch blocker = new CountDownLatch(1);
+
+        try {
+            ZeroFsAsynchronousFileChannel channel = channel(file, executor, READ, WRITE);
+            executor.execute(
+                    () -> {
+                        try {
+                            blocker.await();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    });
+
+            Future<Integer> future = channel.write(buffer("1234567890"), 0);
+            assertTrue(future.cancel(false));
+            blocker.countDown();
+        } finally {
+            executor.shutdown();
+            assertTrue(executor.awaitTermination(10, SECONDS));
+        }
+
+        assertEquals(0, file.size());
+    }
+
+    @Test
+    public void testCompletionHandlerExceptionIsNotSwallowed() throws Throwable {
+        AtomicReference<Throwable> uncaught = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        ExecutorService executor =
+                Executors.newSingleThreadExecutor(
+                        r -> {
+                            Thread thread = new Thread(r);
+                            thread.setUncaughtExceptionHandler(
+                                    (t, e) -> {
+                                        uncaught.set(e);
+                                        latch.countDown();
+                                    });
+                            return thread;
+                        });
+
+        try {
+            ZeroFsAsynchronousFileChannel channel = channel(regularFile(10), executor, READ);
+            channel.read(
+                    ByteBuffer.allocate(10),
+                    0,
+                    null,
+                    new CompletionHandler<Integer, Object>() {
+                        @Override
+                        public void completed(Integer result, Object attachment) {
+                            throw new IllegalStateException("boom");
+                        }
+
+                        @Override
+                        public void failed(Throwable exc, Object attachment) {}
+                    });
+
+            assertTrue(latch.await(10, SECONDS));
+            assertEquals("boom", uncaught.get().getMessage());
         } finally {
             executor.shutdown();
         }
