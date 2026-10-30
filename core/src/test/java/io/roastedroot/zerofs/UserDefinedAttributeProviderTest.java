@@ -60,6 +60,19 @@ public class UserDefinedAttributeProviderTest
     }
 
     @Test
+    public void testView_listIsSorted() throws IOException {
+        UserDefinedFileAttributeView view = provider.view(fileLookup(), NO_INHERITED_VIEWS);
+        List<String> names =
+                List.of(
+                        "alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel",
+                        "india", "juliett");
+        for (String name : names) {
+            view.write(name, ByteBuffer.wrap(new byte[] {1}));
+        }
+        assertEquals(names, view.list());
+    }
+
+    @Test
     public void testView() throws IOException {
         UserDefinedFileAttributeView view = provider.view(fileLookup(), NO_INHERITED_VIEWS);
         assertNotNull(view);

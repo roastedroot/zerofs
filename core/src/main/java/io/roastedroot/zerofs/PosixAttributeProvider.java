@@ -13,6 +13,10 @@ import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.nio.file.attribute.UserPrincipal;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -31,7 +35,7 @@ final class PosixAttributeProvider extends AttributeProvider {
 
     private static final GroupPrincipal DEFAULT_GROUP = createGroupPrincipal("group");
     private static final Set<PosixFilePermission> DEFAULT_PERMISSIONS =
-            Set.copyOf(PosixFilePermissions.fromString("rw-r--r--"));
+            immutablePermissions(PosixFilePermissions.fromString("rw-r--r--"));
 
     @Override
     public String name() {
@@ -74,7 +78,7 @@ final class PosixAttributeProvider extends AttributeProvider {
         if (userProvidedPermissions != null) {
             if (userProvidedPermissions instanceof String) {
                 permissions =
-                        Set.copyOf(
+                        immutablePermissions(
                                 PosixFilePermissions.fromString((String) userProvidedPermissions));
             } else if (userProvidedPermissions instanceof Set) {
                 permissions = toPermissions((Set<?>) userProvidedPermissions);
@@ -140,7 +144,14 @@ final class PosixAttributeProvider extends AttributeProvider {
             }
         }
 
-        return Set.copyOf((Set<PosixFilePermission>) copy);
+        return immutablePermissions((Set<PosixFilePermission>) copy);
+    }
+
+    private static Set<PosixFilePermission> immutablePermissions(
+            Collection<PosixFilePermission> permissions) {
+        Set<PosixFilePermission> result = EnumSet.noneOf(PosixFilePermission.class);
+        result.addAll(permissions);
+        return Collections.unmodifiableSet(result);
     }
 
     @Override
@@ -201,7 +212,7 @@ final class PosixAttributeProvider extends AttributeProvider {
 
         @Override
         public void setPermissions(Set<PosixFilePermission> perms) throws IOException {
-            lookupFile().setAttribute("posix", "permissions", Set.copyOf(perms));
+            lookupFile().setAttribute("posix", "permissions", immutablePermissions(perms));
         }
 
         @Override
@@ -248,7 +259,7 @@ final class PosixAttributeProvider extends AttributeProvider {
 
         @Override
         public Set<PosixFilePermission> permissions() {
-            return permissions;
+            return new LinkedHashSet<>(permissions);
         }
     }
 }
