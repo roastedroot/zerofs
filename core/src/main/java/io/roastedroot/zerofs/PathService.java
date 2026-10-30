@@ -119,15 +119,21 @@ final class PathService implements Comparator<ZeroFsPath> {
             case "..":
                 return Name.PARENT;
             default:
-                String display = PathNormalization.normalize(name, displayNormalizations);
-                String canonical = PathNormalization.normalize(name, canonicalNormalizations);
+                String display =
+                        displayNormalizations.isEmpty()
+                                ? name
+                                : PathNormalization.normalize(name, displayNormalizations);
+                String canonical =
+                        canonicalNormalizations.isEmpty()
+                                ? name
+                                : PathNormalization.normalize(name, canonicalNormalizations);
                 return Name.create(display, canonical);
         }
     }
 
     /** Returns the {@link Name} forms of the given strings. */
     List<Name> names(String[] names) {
-        List<Name> result = new ArrayList<>();
+        List<Name> result = new ArrayList<>(names.length);
         for (String name : names) {
             result.add(name(name));
         }
@@ -174,17 +180,15 @@ final class PathService implements Comparator<ZeroFsPath> {
     }
 
     /** Returns a path with the given root (or no root, if null) and the given names. */
-    protected final ZeroFsPath createPathInternal(Name root, Iterable<Name> names) {
-        List<Name> nameList = new ArrayList();
-        Iterator<Name> namesIter = names.iterator();
-        while (namesIter.hasNext()) {
-            nameList.add(namesIter.next());
-        }
-        return new ZeroFsPath(this, root, nameList.toArray(Name[]::new));
+    protected final ZeroFsPath createPathInternal(Name root, List<Name> names) {
+        return new ZeroFsPath(this, root, List.copyOf(names));
     }
 
     /** Parses the given strings as a path. */
     public ZeroFsPath parsePath(String first, String... more) {
+        if (more.length == 0) {
+            return toPath(type.parsePath(first));
+        }
         List<String> args = new ArrayList<>();
         if (NOT_EMPTY.test(first)) {
             args.add(first);
