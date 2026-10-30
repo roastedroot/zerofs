@@ -1,6 +1,5 @@
 package io.roastedroot.zerofs;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,10 +35,8 @@ final class Util {
 
     /** Checks that no element in the given iterable is null, throwing NPE if any is. */
     static void checkNoneNull(Iterable<?> objects) {
-        if (!(objects instanceof Collection)) {
-            for (Object o : objects) {
-                Objects.requireNonNull(o);
-            }
+        for (Object o : objects) {
+            Objects.requireNonNull(o);
         }
     }
 
