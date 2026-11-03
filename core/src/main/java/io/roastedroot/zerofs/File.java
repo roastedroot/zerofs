@@ -174,7 +174,7 @@ public abstract class File {
         }
         Map<String, Object> row = attributes.get(view);
         if (row == null) {
-            return null;
+            return Set.of();
         }
         return Set.copyOf(row.keySet());
     }
@@ -224,7 +224,13 @@ public abstract class File {
     /** Deletes the given attribute from the given view. */
     public final synchronized void deleteAttribute(String view, String attribute) {
         if (attributes != null) {
-            attributes.get(view).remove(attribute);
+            Map<String, Object> row = attributes.get(view);
+            if (row != null) {
+                row.remove(attribute);
+                if (row.isEmpty()) {
+                    attributes.remove(view);
+                }
+            }
         }
     }
 
@@ -251,7 +257,11 @@ public abstract class File {
             if (this.attributes == null) {
                 this.attributes = new HashMap<>();
             }
-            this.attributes.putAll(attributes);
+            for (Map.Entry<String, Map<String, Object>> row : attributes.entrySet()) {
+                this.attributes
+                        .computeIfAbsent(row.getKey(), k -> new HashMap<>())
+                        .putAll(row.getValue());
+            }
         }
     }
 

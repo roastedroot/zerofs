@@ -62,6 +62,7 @@ import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.attribute.UserDefinedFileAttributeView;
 import java.nio.file.attribute.UserPrincipal;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -1594,6 +1595,10 @@ public class ZeroFsUnixLikeFileSystemTest extends AbstractZeroFsIntegrationTest 
         assertEquals(FileTime.fromMillis(10000), attributes.creationTime());
         assertEquals(zero, Files.getAttribute(bar, "owner:owner"));
 
+        UserPrincipal one = fs.getUserPrincipalLookupService().lookupPrincipalByName("one");
+        Files.setAttribute(bar, "owner:owner", one);
+        assertEquals(zero, Files.getAttribute(foo, "owner:owner"));
+
         Path baz = path("/baz");
         Files.copy(foo, baz);
 
@@ -1603,6 +1608,22 @@ public class ZeroFsUnixLikeFileSystemTest extends AbstractZeroFsIntegrationTest 
         assertNotEquals(FileTime.fromMillis(1000), attributes.lastAccessTime());
         assertNotEquals(FileTime.fromMillis(10000), attributes.creationTime());
         assertNotEquals(zero, Files.getAttribute(baz, "owner:owner"));
+    }
+
+    @Test
+    public void testUserDefinedAttributes_withOtherViews() throws IOException {
+        Configuration config =
+                Configuration.unix().toBuilder().setAttributeViews("posix", "user").build();
+        try (FileSystem userFs = ZeroFs.newFileSystem(config)) {
+            Path foo = userFs.getPath("/foo");
+            Files.createFile(foo);
+
+            UserDefinedFileAttributeView view =
+                    Files.getFileAttributeView(foo, UserDefinedFileAttributeView.class);
+            assertTrue(view.list().isEmpty());
+            assertTrue(Files.readAttributes(foo, "user:*").isEmpty());
+            view.delete("missing");
+        }
     }
 
     @Test
