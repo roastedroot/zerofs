@@ -4,8 +4,10 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -202,6 +204,21 @@ public class PollingWatchServiceTest {
                 List.<WatchEvent<?>>of(
                         new AbstractWatchService.Event<>(ENTRY_MODIFY, 1, fs.getPath("foo")),
                         new AbstractWatchService.Event<>(ENTRY_DELETE, 1, fs.getPath("foo"))));
+    }
+
+    @Test
+    public void testDeletingWatchedDirectoryCancelsAndSignalsKey() throws Exception {
+        ZeroFsPath path = createDirectory();
+        AbstractWatchService.Key key = watcher.register(path, List.of(ENTRY_CREATE, ENTRY_DELETE));
+
+        Files.delete(path);
+
+        WatchKey signalled = watcher.poll(1, SECONDS);
+        assertSame(key, signalled);
+        assertFalse(key.isValid());
+        assertFalse(key.reset());
+        assertFalse(watcher.isPolling());
+        assertTrue(key.pollEvents().isEmpty());
     }
 
     private void assertWatcherHasEvents(WatchEvent<?>... events) throws InterruptedException {
