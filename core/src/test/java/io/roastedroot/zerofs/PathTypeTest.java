@@ -39,6 +39,13 @@ public class PathTypeTest {
     }
 
     @Test
+    public void testSplit_regexReservedSeparator() {
+        assertArrayEquals(new String[] {"a", "b"}, new FakePathType('.').split("a.b"));
+        assertArrayEquals(new String[] {"a", "b"}, new FakePathType('|').split("a|b"));
+        assertArrayEquals(new String[] {"a", "b"}, new FakePathType('\\').split("a\\b"));
+    }
+
+    @Test
     public void testToString() {
         PathType.ParseResult path = type.parsePath("foo/bar\\baz");
         assertEquals("foo/bar/baz", type.toString(path.root(), path.names()));
@@ -96,7 +103,11 @@ public class PathTypeTest {
     private static final class FakePathType extends PathType {
 
         protected FakePathType() {
-            super(false, '/', '\\');
+            this('/', '\\');
+        }
+
+        protected FakePathType(char separator, char... otherSeparators) {
+            super(false, separator, otherSeparators);
         }
 
         @Override

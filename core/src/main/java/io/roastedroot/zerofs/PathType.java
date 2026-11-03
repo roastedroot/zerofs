@@ -61,7 +61,7 @@ public abstract class PathType {
         this.splitter = createSplitter(separator, otherSeparators);
     }
 
-    private static final char[] regexReservedChars = "^$.?+*\\[]{}()".toCharArray();
+    private static final char[] regexReservedChars = "^$.?+*\\[]{}()|".toCharArray();
 
     static {
         Arrays.sort(regexReservedChars);
@@ -69,7 +69,9 @@ public abstract class PathType {
 
     private static String createSplitter(char separator, char... otherSeparators) {
         if (otherSeparators.length == 0) {
-            return "" + separator;
+            StringBuilder patternBuilder = new StringBuilder();
+            appendToRegex(separator, patternBuilder);
+            return patternBuilder.toString();
         }
 
         // TODO(cgdecker): When CharMatcher is out of @Beta, us Splitter.on(CharMatcher)
