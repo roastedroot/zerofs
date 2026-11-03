@@ -245,7 +245,9 @@ public class ConfigurationTest {
         assertFalse(rootsIter.hasNext());
         assertEquals(fs.getPath("/hello/world"), fs.getPath("").toRealPath());
         Iterator<FileStore> fsIter = fs.getFileStores().iterator();
-        assertEquals(100, fsIter.next().getTotalSpace());
+        FileStore fileStore = fsIter.next();
+        assertEquals(100, fileStore.getTotalSpace());
+        assertEquals(10, fileStore.getBlockSize());
         assertFalse(fsIter.hasNext());
         assertEquals(Set.of("basic", "owner", "posix", "unix"), fs.supportedFileAttributeViews());
 

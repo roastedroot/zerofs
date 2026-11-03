@@ -222,6 +222,12 @@ final class ZeroFsFileStore extends FileStore {
     }
 
     @Override
+    public long getBlockSize() {
+        state.checkOpen();
+        return disk.blockSize();
+    }
+
+    @Override
     public boolean supportsFileAttributeView(Class<? extends FileAttributeView> type) {
         state.checkOpen();
         return attributes.supportsFileAttributeView(type);
