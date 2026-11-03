@@ -161,7 +161,7 @@ public final class PathSubject {
         exists(); // check for directoryness should imply check for existence
 
         if (!Files.isDirectory(actual, linkOptions)) {
-            throw new AssertionError(String.format("expected to be director %sy, absolute"));
+            throw new AssertionError(String.format("expected to be a directory: %s", actual));
         }
         return this;
     }
@@ -171,7 +171,7 @@ public final class PathSubject {
         exists(); // check for regular fileness should imply check for existence
 
         if (!Files.isRegularFile(actual, linkOptions)) {
-            throw new AssertionError(String.format("expected to be regular  %sf, absoluteile"));
+            throw new AssertionError(String.format("expected to be a regular file: %s", actual));
         }
         return this;
     }
@@ -181,7 +181,7 @@ public final class PathSubject {
         exists(); // check for symbolic linkness should imply check for existence
 
         if (!Files.isSymbolicLink(actual)) {
-            throw new AssertionError(String.format("expected to be symbolic %s , absolutelink"));
+            throw new AssertionError(String.format("expected to be a symbolic link: %s", actual));
         }
         return this;
     }
@@ -220,7 +220,8 @@ public final class PathSubject {
     /** Asserts that the path resolves to the same file as the given path. */
     public PathSubject isSameFileAs(Path path) throws IOException {
         if (!Files.isSameFile(actual, path)) {
-            throw new AssertionError(String.format("expected to be same file %s as", path));
+            throw new AssertionError(
+                    String.format("expected %s to be the same file as %s", actual, path));
         }
         return this;
     }
@@ -228,7 +229,8 @@ public final class PathSubject {
     /** Asserts that the path does not resolve to the same file as the given path. */
     public PathSubject isNotSameFileAs(String path) throws IOException {
         if (Files.isSameFile(actual, toPath(path))) {
-            throw new AssertionError(String.format("expected not to be same %s file as", path));
+            throw new AssertionError(
+                    String.format("expected %s not to be the same file as %s", actual, path));
         }
         return this;
     }
@@ -239,8 +241,7 @@ public final class PathSubject {
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(actual)) {
             if (stream.iterator().hasNext()) {
-                throw new AssertionError(
-                        String.format("expected to have no chi %sl, absolutedren"));
+                throw new AssertionError(String.format("expected to have no children: %s", actual));
             }
         }
         return this;
