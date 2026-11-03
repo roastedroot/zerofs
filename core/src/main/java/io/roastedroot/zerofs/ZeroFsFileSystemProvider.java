@@ -257,7 +257,7 @@ final class ZeroFsFileSystemProvider extends FileSystemProvider {
 
     @Override
     public void move(Path source, Path target, CopyOption... options) throws IOException {
-        copy(source, target, Options.getMoveOptions(options), true);
+        copy(source, target, Options.getMoveOptions(source, target, options), true);
     }
 
     @Override
