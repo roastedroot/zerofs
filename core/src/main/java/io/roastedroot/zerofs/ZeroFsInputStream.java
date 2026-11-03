@@ -66,6 +66,9 @@ final class ZeroFsInputStream extends InputStream {
 
     private synchronized int readInternal(byte[] b, int off, int len) throws IOException {
         checkNotClosed();
+        if (len == 0) {
+            return 0;
+        }
         if (finished) {
             return -1;
         }
