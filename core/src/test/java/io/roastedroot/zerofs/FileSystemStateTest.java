@@ -2,6 +2,7 @@ package io.roastedroot.zerofs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -131,6 +132,20 @@ public class FileSystemStateTest {
         for (TestCloseable resource : resources) {
             assertTrue(resource.closed);
         }
+    }
+
+    @Test
+    public void testClose_errorIsRethrown() {
+        TestCloseable resource = new TestCloseable();
+        state.register(
+                () -> {
+                    throw new AssertionError("boom");
+                });
+        state.register(resource);
+
+        AssertionError thrown = assertThrows(AssertionError.class, state::close);
+        assertEquals("boom", thrown.getMessage());
+        assertTrue(resource.closed);
     }
 
     private static class TestCloseable implements Closeable {

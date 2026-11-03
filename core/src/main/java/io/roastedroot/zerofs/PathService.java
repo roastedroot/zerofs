@@ -82,7 +82,7 @@ final class PathService implements Comparator<ZeroFsPath> {
     public void setFileSystem(FileSystem fileSystem) {
         // allowed to not be ZeroFsFileSystem for testing purposes only
         if (this.fileSystem != null) {
-            new IllegalStateException("may not set fileSystem twice");
+            throw new IllegalStateException("may not set fileSystem twice");
         }
         this.fileSystem = Objects.requireNonNull(fileSystem);
     }
