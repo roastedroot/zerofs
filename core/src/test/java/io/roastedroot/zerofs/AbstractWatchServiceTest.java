@@ -10,6 +10,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -59,6 +60,13 @@ public class AbstractWatchServiceTest {
         assertFalse(key.subscribesTo(ENTRY_DELETE));
         assertEquals(watchable, key.watchable());
         assertEquals(READY, key.state());
+    }
+
+    @Test
+    public void testRegister_nullKind() {
+        assertThrows(
+                NullPointerException.class,
+                () -> watcher.register(new StubWatchable(), Arrays.asList(ENTRY_CREATE, null)));
     }
 
     @Test
