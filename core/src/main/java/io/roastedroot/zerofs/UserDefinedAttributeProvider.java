@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.attribute.FileAttributeView;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,7 +50,7 @@ final class UserDefinedAttributeProvider extends AttributeProvider {
         for (String attribute : file.getAttributeNames("user")) {
             builder.add(attribute);
         }
-        return Set.copyOf(builder);
+        return Collections.unmodifiableSet(builder);
     }
 
     @Override
