@@ -347,6 +347,14 @@ public class AttributeServiceTest {
     }
 
     @Test
+    public void testReadAttributes_failsForUnsupportedAttributeView() {
+        File file = createFile();
+        assertThrows(
+                UnsupportedOperationException.class,
+                () -> service.readAttributes(file, "nonexistview:*"));
+    }
+
+    @Test
     public void testIllegalAttributeFormats() {
         File file = createFile();
         try {
