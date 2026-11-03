@@ -8,8 +8,10 @@ import java.nio.channels.CompletionHandler;
 import java.nio.channels.FileLock;
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 /**
  * {@link AsynchronousFileChannel} implementation that delegates to a {@link ZeroFsFileChannel}.
@@ -19,49 +21,11 @@ import java.util.concurrent.ExecutorService;
 final class ZeroFsAsynchronousFileChannel extends AsynchronousFileChannel {
 
     private final ZeroFsFileChannel channel;
-    private final CompletableListeningExecutor executor;
-
-    public class CompletableListeningExecutor {
-        private final ExecutorService delegate;
-
-        public CompletableListeningExecutor(ExecutorService delegate) {
-            this.delegate = delegate;
-        }
-
-        public <T> CompletableFuture<T> submit(Callable<T> task) {
-            CompletableFuture<T> future = new CompletableFuture<>();
-            delegate.submit(
-                    () -> {
-                        try {
-                            T result = task.call();
-                            future.complete(result);
-                        } catch (Throwable t) {
-                            future.completeExceptionally(t);
-                        }
-                    });
-            return future;
-        }
-
-        public CompletableFuture<Void> submit(Runnable task) {
-            return submit(
-                    () -> {
-                        task.run();
-                        return null;
-                    });
-        }
-
-        public void shutdown() {
-            delegate.shutdown();
-        }
-
-        public ExecutorService getExecutor() {
-            return delegate;
-        }
-    }
+    private final ExecutorService executor;
 
     public ZeroFsAsynchronousFileChannel(ZeroFsFileChannel channel, ExecutorService executor) {
         this.channel = Objects.requireNonNull(channel);
-        this.executor = new CompletableListeningExecutor(executor);
+        this.executor = Objects.requireNonNull(executor);
     }
 
     @Override
@@ -70,16 +34,17 @@ final class ZeroFsAsynchronousFileChannel extends AsynchronousFileChannel {
     }
 
     private <R, A> void addCallback(
-            CompletableFuture<R> future, CompletionHandler<R, ? super A> handler, A attachment) {
-        future.whenCompleteAsync(
-                (result, throwable) -> {
-                    if (throwable != null) {
-                        handler.failed(throwable, attachment);
-                    } else {
-                        handler.completed(result, attachment);
-                    }
-                },
-                executor.getExecutor());
+            ListenableTask<R> future, CompletionHandler<R, ? super A> handler, A attachment) {
+        future.addListener(
+                () ->
+                        executor.execute(
+                                new CompletionHandlerCallback<>(future, handler, attachment)));
+    }
+
+    private <R> ListenableTask<R> submit(Callable<R> task) {
+        ListenableTask<R> future = new ListenableTask<>(task);
+        executor.execute(future);
+        return future;
     }
 
     @Override
@@ -105,7 +70,7 @@ final class ZeroFsAsynchronousFileChannel extends AsynchronousFileChannel {
     }
 
     @Override
-    public CompletableFuture<FileLock> lock(
+    public ListenableTask<FileLock> lock(
             final long position, final long size, final boolean shared) {
         Util.checkNotNegative(position, "position");
         Util.checkNotNegative(size, "size");
@@ -117,7 +82,7 @@ final class ZeroFsAsynchronousFileChannel extends AsynchronousFileChannel {
         } else {
             channel.checkWritable();
         }
-        return executor.submit(
+        return submit(
                 new Callable<FileLock>() {
                     @Override
                     public FileLock call() throws IOException {
@@ -149,7 +114,7 @@ final class ZeroFsAsynchronousFileChannel extends AsynchronousFileChannel {
     }
 
     @Override
-    public CompletableFuture<Integer> read(final ByteBuffer dst, final long position) {
+    public ListenableTask<Integer> read(final ByteBuffer dst, final long position) {
         if (dst.isReadOnly()) {
             throw new IllegalArgumentException("dst may not be read-only");
         }
@@ -158,7 +123,7 @@ final class ZeroFsAsynchronousFileChannel extends AsynchronousFileChannel {
             return closedChannelFuture();
         }
         channel.checkReadable();
-        return executor.submit(
+        return submit(
                 new Callable<Integer>() {
                     @Override
                     public Integer call() throws IOException {
@@ -177,13 +142,13 @@ final class ZeroFsAsynchronousFileChannel extends AsynchronousFileChannel {
     }
 
     @Override
-    public CompletableFuture<Integer> write(final ByteBuffer src, final long position) {
+    public ListenableTask<Integer> write(final ByteBuffer src, final long position) {
         Util.checkNotNegative(position, "position");
         if (!isOpen()) {
             return closedChannelFuture();
         }
         channel.checkWritable();
-        return executor.submit(
+        return submit(
                 new Callable<Integer>() {
                     @Override
                     public Integer call() throws IOException {
@@ -203,9 +168,80 @@ final class ZeroFsAsynchronousFileChannel extends AsynchronousFileChannel {
     }
 
     /** Immediate future indicating that the channel is closed. */
-    private static <V> CompletableFuture<V> closedChannelFuture() {
-        CompletableFuture<V> future = new CompletableFuture<>();
-        future.completeExceptionally(new ClosedChannelException());
+    private static <V> ListenableTask<V> closedChannelFuture() {
+        ListenableTask<V> future =
+                new ListenableTask<>(
+                        () -> {
+                            throw new ClosedChannelException();
+                        });
+        future.run();
         return future;
+    }
+
+    /** {@link FutureTask} that runs a single listener once it is done, including on cancel. */
+    static final class ListenableTask<V> extends FutureTask<V> {
+
+        private Runnable listener;
+        private boolean done;
+
+        ListenableTask(Callable<V> callable) {
+            super(callable);
+        }
+
+        void addListener(Runnable listener) {
+            synchronized (this) {
+                if (!done) {
+                    this.listener = listener;
+                    return;
+                }
+            }
+            listener.run();
+        }
+
+        @Override
+        protected void done() {
+            Runnable toRun;
+            synchronized (this) {
+                done = true;
+                toRun = listener;
+            }
+            if (toRun != null) {
+                toRun.run();
+            }
+        }
+    }
+
+    /** Runnable callback that wraps a {@link CompletionHandler} and an attachment. */
+    private static final class CompletionHandlerCallback<R, A> implements Runnable {
+
+        private final Future<R> future;
+        private final CompletionHandler<R, ? super A> completionHandler;
+        private final A attachment;
+
+        private CompletionHandlerCallback(
+                Future<R> future, CompletionHandler<R, ? super A> completionHandler, A attachment) {
+            this.future = Objects.requireNonNull(future);
+            this.completionHandler = Objects.requireNonNull(completionHandler);
+            this.attachment = attachment;
+        }
+
+        @Override
+        public void run() {
+            R result;
+            try {
+                result = future.get();
+            } catch (ExecutionException e) {
+                completionHandler.failed(e.getCause(), attachment);
+                return;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                completionHandler.failed(e, attachment);
+                return;
+            } catch (RuntimeException | Error e) {
+                completionHandler.failed(e, attachment);
+                return;
+            }
+            completionHandler.completed(result, attachment);
+        }
     }
 }
