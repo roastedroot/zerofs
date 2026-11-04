@@ -12,6 +12,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * {@link AsynchronousFileChannel} implementation that delegates to a {@link ZeroFsFileChannel}.
@@ -36,9 +37,14 @@ final class ZeroFsAsynchronousFileChannel extends AsynchronousFileChannel {
     private <R, A> void addCallback(
             ListenableTask<R> future, CompletionHandler<R, ? super A> handler, A attachment) {
         future.addListener(
-                () ->
+                () -> {
+                    try {
                         executor.execute(
-                                new CompletionHandlerCallback<>(future, handler, attachment)));
+                                new CompletionHandlerCallback<>(future, handler, attachment));
+                    } catch (RejectedExecutionException e) {
+                        // executor shut down: drop the callback, as upstream Jimfs does
+                    }
+                });
     }
 
     private <R> ListenableTask<R> submit(Callable<R> task) {
