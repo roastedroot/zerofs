@@ -1274,19 +1274,16 @@ public class ZeroFsUnixLikeFileSystemTest extends AbstractZeroFsIntegrationTest 
         Files.createSymbolicLink(path("/foo/bar"), path("baz"));
         Files.createSymbolicLink(path("/foo/baz"), path("bar"));
 
-        try {
-            Files.createFile(path("/foo/bar/file"));
-            fail();
-        } catch (IOException expected) {
-            assertTrue(expected.getMessage().contains("symbolic link"));
-        }
+        FileSystemException expected =
+                assertThrows(
+                        FileSystemException.class, () -> Files.createFile(path("/foo/bar/file")));
+        assertEquals("Too many levels of symbolic links", expected.getReason());
 
-        try {
-            Files.write(path("/foo/bar"), preFilledBytes(10));
-            fail();
-        } catch (IOException expected) {
-            assertTrue(expected.getMessage().contains("symbolic link"));
-        }
+        expected =
+                assertThrows(
+                        FileSystemException.class,
+                        () -> Files.write(path("/foo/bar"), preFilledBytes(10)));
+        assertEquals("Too many levels of symbolic links", expected.getReason());
     }
 
     @Test

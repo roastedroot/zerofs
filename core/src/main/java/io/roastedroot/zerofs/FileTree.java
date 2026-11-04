@@ -1,6 +1,7 @@
 package io.roastedroot.zerofs;
 
 import java.io.IOException;
+import java.nio.file.FileSystemException;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.util.Iterator;
@@ -166,7 +167,7 @@ final class FileTree {
     private DirectoryEntry followSymbolicLink(File dir, SymbolicLink link, int linkDepth)
             throws IOException {
         if (linkDepth >= MAX_SYMBOLIC_LINK_DEPTH) {
-            throw new IOException("too many levels of symbolic links");
+            throw new FileSystemException(null, null, "Too many levels of symbolic links");
         }
 
         return lookUp(dir, link.target(), Options.FOLLOW_LINKS, linkDepth + 1);
