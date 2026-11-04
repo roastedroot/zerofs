@@ -108,6 +108,14 @@ final class ZeroFsFileStore extends FileStore {
         return tree.lookUp(workingDirectory, path, options);
     }
 
+    /** Returns the existing file at the given path, or {@code null} if there is none. */
+    File lookUpIfExists(File workingDirectory, ZeroFsPath path, Set<? super LinkOption> options)
+            throws IOException {
+        state.checkOpen();
+        DirectoryEntry entry = tree.lookUpOrNull(workingDirectory, path, options);
+        return entry == null ? null : entry.fileOrNull();
+    }
+
     /** Returns a supplier that creates a new regular file. */
     Supplier<RegularFile> regularFileCreator() {
         state.checkOpen();
