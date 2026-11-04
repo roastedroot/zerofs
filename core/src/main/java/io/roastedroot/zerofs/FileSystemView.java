@@ -374,10 +374,6 @@ final class FileSystemView {
         return symbolicLink.target();
     }
 
-    /**
-     * Checks access to the file at the given path for the given modes. Since access controls are not
-     * implemented for this file system, this just checks that the file exists.
-     */
     /** Returns whether a file exists at the given path, without throwing if it doesn't. */
     public boolean exists(ZeroFsPath path, Set<? super LinkOption> options) {
         try {
@@ -404,6 +400,10 @@ final class FileSystemView {
         }
     }
 
+    /**
+     * Checks access to the file at the given path for the given modes. Since access controls are not
+     * implemented for this file system, this just checks that the file exists.
+     */
     public void checkAccess(ZeroFsPath path) throws IOException {
         // just check that the file exists
         lookUpWithLock(path, Options.FOLLOW_LINKS).requireExists(path);
