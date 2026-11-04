@@ -1,5 +1,7 @@
 package io.roastedroot.zerofs;
 
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+
 import java.io.IOException;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.ClosedDirectoryStreamException;
@@ -177,21 +179,14 @@ final class ZeroFsSecureDirectoryStream implements SecureDirectoryStream<Path> {
             throws IOException {
         checkOpen();
         ZeroFsPath checkedSrcPath = checkPath(srcPath);
-        ZeroFsPath checkedTargetPath = checkPath(targetPath);
 
-        if (!(targetDir instanceof ZeroFsSecureDirectoryStream)) {
-            throw new ProviderMismatchException(
-                    "targetDir isn't a secure directory stream associated with this file system");
-        }
+        ZeroFsSecureDirectoryStream checkedTargetDir = checkDirectoryStream(targetDir);
+        ZeroFsPath checkedTargetPath = checkedTargetDir.checkPath(targetPath);
 
-        ZeroFsSecureDirectoryStream checkedTargetDir = (ZeroFsSecureDirectoryStream) targetDir;
-
-        view.copy(
-                checkedSrcPath,
-                checkedTargetDir.view,
-                checkedTargetPath,
-                Set.<CopyOption>of(),
-                true);
+        // like Files.move with ATOMIC_MOVE: same file system only, and links are not followed
+        Set<CopyOption> options =
+                Options.getMoveOptions(checkedSrcPath, checkedTargetPath, ATOMIC_MOVE);
+        view.copy(checkedSrcPath, checkedTargetDir.view, checkedTargetPath, options, true);
     }
 
     @Override
@@ -219,11 +214,28 @@ final class ZeroFsSecureDirectoryStream implements SecureDirectoryStream<Path> {
                 type);
     }
 
-    private static ZeroFsPath checkPath(Path path) {
-        if (path instanceof ZeroFsPath) {
-            return (ZeroFsPath) path;
+    private ZeroFsPath checkPath(Path path) {
+        if (!(path instanceof ZeroFsPath)) {
+            throw new ProviderMismatchException(
+                    "path " + path + " is not associated with a ZeroFs file system");
         }
-        throw new ProviderMismatchException(
-                "path " + path + " is not associated with a ZeroFs file system");
+        if (!path().getFileSystem().equals(path.getFileSystem())) {
+            throw new ProviderMismatchException(
+                    "path "
+                            + path
+                            + " is associated with a different ZeroFs file system than this "
+                            + "SecureDirectoryStream");
+        }
+        return (ZeroFsPath) path;
+    }
+
+    // the target stream's file system is checked by the atomic move requirement
+    private static ZeroFsSecureDirectoryStream checkDirectoryStream(
+            SecureDirectoryStream<Path> stream) {
+        if (!(stream instanceof ZeroFsSecureDirectoryStream)) {
+            throw new ProviderMismatchException(
+                    stream + " isn't a secure directory stream associated with this file system");
+        }
+        return (ZeroFsSecureDirectoryStream) stream;
     }
 }
