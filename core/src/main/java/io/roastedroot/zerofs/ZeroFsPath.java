@@ -246,7 +246,12 @@ final class ZeroFsPath implements Path {
 
     /** Resolves the given name against this path. The name is assumed not to be a root name. */
     ZeroFsPath resolve(Name name) {
-        return resolve(pathService.createFileName(name));
+        if (isEmptyPath()) {
+            return pathService.createFileName(name);
+        }
+        Name[] all = names.toArray(new Name[names.size() + 1]);
+        all[names.size()] = name;
+        return new ZeroFsPath(pathService, root, all);
     }
 
     @Override

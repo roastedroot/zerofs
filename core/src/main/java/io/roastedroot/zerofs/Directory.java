@@ -1,10 +1,11 @@
 package io.roastedroot.zerofs;
 
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * A table of {@linkplain DirectoryEntry directory entries}.
@@ -128,16 +129,17 @@ final class Directory extends File implements Iterable<DirectoryEntry> {
      * Creates an immutable sorted snapshot of the names this directory contains, excluding "." and
      * "..".
      */
-    public SortedSet<Name> snapshot() {
-        SortedSet<Name> builder = new TreeSet<>(Name.displayComparator());
+    public List<Name> snapshot() {
+        List<Name> names = new ArrayList<>(entryCount);
 
         for (DirectoryEntry entry : this) {
             if (!isReserved(entry.name())) {
-                builder.add(entry.name());
+                names.add(entry.name());
             }
         }
 
-        return builder;
+        names.sort(Name.displayComparator());
+        return Collections.unmodifiableList(names);
     }
 
     /** Checks that the given name is not "." or "..". Those names cannot be set/removed by users. */
