@@ -53,12 +53,14 @@ public enum PathNormalization implements Function<String, String> {
      * copy of Windows.
      */
 
-    /** Unicode case folding for case insensitive paths. Requires ICU4J on the classpath. */
+    /**
+     * Approximate Unicode case folding for case insensitive paths, using {@code
+     * toLowerCase(Locale.ROOT)} rather than full ICU4J case folding.
+     */
     @Deprecated(since = "broken")
     CASE_FOLD_UNICODE(Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE) {
         @Override
         public String apply(String string) {
-            // TODO: is this a viable implementation?
             return string.toLowerCase(Locale.ROOT);
         }
     },
