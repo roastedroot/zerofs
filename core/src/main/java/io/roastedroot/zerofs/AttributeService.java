@@ -308,7 +308,7 @@ final class AttributeService {
             throw new IllegalArgumentException("invalid attributes: " + attributes);
         }
 
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>(32);
         if (attrs.size() == 1 && attrs.contains(ALL_ATTRIBUTES)) {
             // for 'view:*' format, get all keys for all providers for the view
             readAll(file, provider, result);
@@ -324,7 +324,7 @@ final class AttributeService {
             }
         }
 
-        return Map.copyOf(result);
+        return Collections.unmodifiableMap(result);
     }
 
     /**
