@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -21,13 +22,16 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
 import java.nio.channels.FileLock;
 import java.nio.file.OpenOption;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 
@@ -237,6 +241,52 @@ public class ZeroFsAsynchronousFileChannelTest {
         } finally {
             executor.shutdown();
         }
+    }
+
+    @Test
+    public void testCompletionAfterExecutorShutdownIsDropped() throws Throwable {
+        AtomicReference<Throwable> uncaught = new AtomicReference<>();
+        List<Thread> threads = new CopyOnWriteArrayList<>();
+        ExecutorService executor =
+                Executors.newSingleThreadExecutor(
+                        r -> {
+                            Thread thread = new Thread(r);
+                            thread.setUncaughtExceptionHandler((t, e) -> uncaught.set(e));
+                            threads.add(thread);
+                            return thread;
+                        });
+        AtomicBoolean handled = new AtomicBoolean();
+        RegularFile file = regularFile(10);
+        ZeroFsAsynchronousFileChannel channel = channel(file, executor, READ);
+
+        file.writeLock().lock(); // the read completes only after the executor is shut down
+        try {
+            channel.read(
+                    ByteBuffer.allocate(10),
+                    0,
+                    null,
+                    new CompletionHandler<Integer, Object>() {
+                        @Override
+                        public void completed(Integer result, Object attachment) {
+                            handled.set(true);
+                        }
+
+                        @Override
+                        public void failed(Throwable exc, Object attachment) {
+                            handled.set(true);
+                        }
+                    });
+            executor.shutdown();
+        } finally {
+            file.writeLock().unlock();
+        }
+
+        assertTrue(executor.awaitTermination(10, SECONDS));
+        for (Thread thread : threads) {
+            thread.join();
+        }
+        assertNull(uncaught.get());
+        assertFalse(handled.get());
     }
 
     private static void checkAsyncRead(AsynchronousFileChannel channel) throws Throwable {
