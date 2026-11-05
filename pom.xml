@@ -4,7 +4,7 @@
 
   <groupId>io.roastedroot</groupId>
   <artifactId>zerofs-parent</artifactId>
-  <version>0.2.0</version>
+  <version>9.9.9.9-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>ZeroFs Parent</name>
@@ -55,7 +55,7 @@
     <maven.compiler.release>11</maven.compiler.release>
     <maven.compiler.failOnWarning>true</maven.compiler.failOnWarning>
     <maven.dependency.failOnWarning>true</maven.dependency.failOnWarning>
-    <project.build.outputTimestamp>2026-11-05T17:07:14Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2026-11-05T17:17:50Z</project.build.outputTimestamp>
 
     <java.version>11</java.version>
 

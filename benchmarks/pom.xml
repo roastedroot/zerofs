@@ -4,7 +4,7 @@
   <parent>
     <groupId>io.roastedroot</groupId>
     <artifactId>zerofs-parent</artifactId>
-    <version>0.2.0</version>
+    <version>9.9.9.9-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>zerofs-benchmarks</artifactId>
